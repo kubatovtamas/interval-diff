@@ -490,15 +490,15 @@ class TestIntervalArithmetic(unittest.TestCase):
             ), [3, 24])
 
 
-if __name__ == '__main__':
+def main():
     # Gyak 3:
     # I. Intervallum aritmetika
 
     # Team1 [1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = [1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]
-    # sub_interval(add_interval([1, 4], div_interval([-1, 2], [-5, -1])), [-2, 1])
+    sub_interval(add_interval([1, 4], div_interval([-1, 2], [-5, -1])), [-2, 1])
 
     # Team2 X=[-1;2] intervallumon a x^2+3x függvényt, minél szűkebb megoldást
-    # add_interval(pow_interval([-1, 2], 2), [-3, 6])  # f1(x) = x^2+3x
+    add_interval(pow_interval([-1, 2], 2), [-3, 6])  # f1(x) = x^2+3x
     # add_interval(mul_interval([-1, 2], [-1, 2]), [-3, 6])  # f2(x) = x * x + 3x
     # mul_interval([-1, 2], add_interval([-1, 2], [3*-1, 3*2]))  # f3(x) = x*(x+3x)
     # f4(x) = (x+3/2)^2-9/4
@@ -506,7 +506,7 @@ if __name__ == '__main__':
     # II. Automatikus differenciálás
     # Team 3. a log(x)(x^2+2x+4) -t az x = 3 helyen
     auto_diff("log(x) * (x^2 + 2*x + 4)", 3, 4)
-    mul_diff(log_diff([3, 1]), add_diff(add_diff(pow_diff([3, 1], 2), [2*3, 2*1]), [4, 0]))
+    # mul_diff(log_diff([3, 1]), add_diff(add_diff(pow_diff([3, 1], 2), [2*3, 2*1]), [4, 0]))
 
     # Team 4. a (x^3 - x^2 + 5)(x + 4) -t az x = 2 helyen
     # auto_diff("(x^3 - x^2 + 5) * (x + 4)", 2, 5, 4)
@@ -520,4 +520,8 @@ if __name__ == '__main__':
     # diff y
     # auto_diff("sin(1^2) * (x^3 + 2)", 2, 1, 2)
     # mul_diff(sin_diff(pow_diff([1, 0], 2)), add_diff(pow_diff([2, 1], 3), [2, 0]))
+
+
+if __name__ == '__main__':
+    main()
     # unittest.main()
