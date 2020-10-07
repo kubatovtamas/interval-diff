@@ -5,7 +5,7 @@
 #TODO make IO script
 
 
-from typing import Union, Optional
+from typing import Union, Optional, NewType
 import sympy as sp
 import unittest
 import math
@@ -22,6 +22,8 @@ class Color:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
     END = '\033[0m'
+
+Interval_t = NewType('Interval_t', list)
 
 # Interval arithmetic
 
@@ -49,18 +51,16 @@ class Interval:
     def __str__(self):
         return f"[{self.low}, {self.high}]"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Interval_t):
         if isinstance(other, Interval):
             return math.isclose(self.low, other.low, rel_tol=0.0001) and math.isclose(self.high, other.high, rel_tol=0.0001)
 
 
-    def __add__(self, other):
+    def __add__(self: Interval_t, other: Interval_t) -> Interval_t:
         if isinstance(other, Interval):
             left = self.low + other.low
             right = self.high + other.high
-            # if do_print:
-            #     print(
-            #         f"{F} + {G} = [{F[0]} + {G[0]}, {F[1]} + {G[1]}] =  {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}\n")
+
             return Interval([left, right])
         raise TypeError
 
