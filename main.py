@@ -46,6 +46,9 @@ class Interval:
     def high(self, value):
         self.interval[1] = value
 
+    def __str__(self):
+        return f"[{self.low}, {self.high}]"
+
     def __eq__(self, other):
         if isinstance(other, Interval):
             return math.isclose(self.low, other.low, rel_tol=0.0001) and math.isclose(self.high, other.high, rel_tol=0.0001)
@@ -597,12 +600,13 @@ def main():
 
     # 4. Értékeld ki a fenti f(x,y) függvényt az x=[-1;1] és y=[0,4] intervallumon!
     # (((x ^ 3) + ((y ^ 2) / x)) + (x * (cos(y)))) + 4
-    pass
 
+    # pass
+    print(Interval([4, 3]) + Interval([-2, 5]))
 
 
 
 
 if __name__ == '__main__':
-    # main()
-    unittest.main()
+    # unittest.main()
+    main()
