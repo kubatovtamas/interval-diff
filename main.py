@@ -27,6 +27,15 @@ class Color:
 number = TypeVar('number', int, float)
 
 
+class Demo():
+    def __xor__(self, other):
+        print("__xor__", other)
+
+    def __rxor__(self, other):
+        print("__rxor__", other)
+
+
+
 # Interval arithmetic
 
 class Interval:
@@ -89,15 +98,17 @@ class Interval:
             return self * right
         raise TypeError
 
-    def __pow__(self: Interval, power: int, modulo=None):
+    def __pow__(self: Interval, power: int, modulo=None) -> Interval:
         if self.low <= 0 <= self.high:
             return Interval([0, (self.high ** power)])
         val1 = self.low ** power
         val2 = self.high ** power
         return Interval([min(val1, val2), max(val1, val2)])
 
-
-
+    def __rxor__(self: Interval, other: number):
+        left = other ** self.low
+        right = other ** self.high
+        return Interval([left, right])
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -194,6 +205,7 @@ def pow_interval(F: list, k: int, do_print: bool = True) -> list:
 
 
 def log_interval(F: list, do_print: bool = True) -> list:
+    #TODO THIS IS FAKE, DONT COPY PASTE
     """
     log([a, b]) = [log(a), log(b)]
 
@@ -623,6 +635,26 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(t4 ** 0 == Interval([1, 1]))
 
 
+    def test_interval_exp(self):
+        t1 = Interval([1, 2])
+        t2 = Interval([-2, 2])
+        t3 = Interval([-6, 8])
+
+        self.assertTrue(math.e ^ t1 == Interval([math.e, math.e ** 2]))
+        self.assertTrue(2 ^ t2 == Interval([2 ** -2, 2 ** 2]))
+        self.assertTrue(math.pi ^ t3 == Interval([math.pi ** -6, math.pi ** 8]))
+
+
+
+    # def test_interval_log(self):
+    #     t1 = Interval([-1, 2])
+    #     t2 = Interval([1, 2])
+    #     t3 = Interval([-2, -1])
+    #     t4 = Interval([-3, -2])
+    #
+    #     self.assertTrue(Interval.log(t1) == Interval([1, 1]))
+
+
 class IntervalArithmeticTestCase(unittest.TestCase):
     def test_add_interval(self):
         self.assertEqual(add_interval([0, 1], [2, 3], False), [2, 4])
@@ -719,8 +751,13 @@ def main():
     # (((x ^ 3) + ((y ^ 2) / x)) + (x * (cos(y)))) + 4
 
     # pass
-    print(Interval([4, 3]) + Interval([-2, 5]))
-    print(Interval([1.0001, 5]))
+    # print(Interval([4, 3]) + Interval([-2, 5]))
+    # print(Interval([1.0001, 5]))
+
+    a = Demo()
+
+    math.e ^ a
+    a ^ math.e
 
 
 
