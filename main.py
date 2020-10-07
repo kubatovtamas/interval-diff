@@ -26,7 +26,7 @@ class Color:
 # Interval arithmetic
 
 
-class I:
+class Interval:
     def __init__(self, interval: list):
         self.interval = interval
 
@@ -46,8 +46,20 @@ class I:
     def high(self, value):
         self.interval[1] = value
 
-    # def __add__(self, other):
-    #     add_interval(self, other)
+    def __eq__(self, other):
+        if isinstance(other, Interval):
+            return math.isclose(self.low, other.low, rel_tol=0.0001) and math.isclose(self.high, other.high, rel_tol=0.0001)
+
+
+    def __add__(self, other):
+        if isinstance(other, Interval):
+            left = self.low + other.low
+            right = self.high + other.high
+            # if do_print:
+            #     print(
+            #         f"{F} + {G} = [{F[0]} + {G[0]}, {F[1]} + {G[1]}] =  {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}\n")
+            return Interval([left, right])
+        raise TypeError
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -522,16 +534,27 @@ class TestIntervalArithmetic(unittest.TestCase):
 
 
     def test_interval_class(self):
-        test_interval = I([1, 5])
+        test_interval_1 = Interval([1, 5])
+        test_interval_2 = Interval([1, 5])
+        test_interval_3 = Interval([1.0001, 5])
+        test_interval_4 = Interval([1.0002, 5])
 
-        self.assertIsInstance(test_interval, I)
-        self.assertEqual(test_interval.low, test_interval.interval[0])
-        self.assertEqual(test_interval.high, test_interval.interval[1])
+        self.assertIsInstance(test_interval_1, Interval)
+        self.assertEqual(test_interval_1.low, test_interval_1.interval[0])
+        self.assertEqual(test_interval_1.high, test_interval_1.interval[1])
 
-        self.assertEqual(test_interval.low, 1)
-        self.assertEqual(test_interval.high, 5)
+        self.assertEqual(test_interval_1.low, 1)
+        self.assertEqual(test_interval_1.high, 5)
 
+        self.assertTrue(test_interval_1 == test_interval_2)
+        self.assertTrue(test_interval_1 == test_interval_3)
+        self.assertFalse(test_interval_1 == test_interval_4)
 
+        test_interval_5 = Interval([0, 1])
+        test_interval_6 = Interval([2, 3])
+        test_interval_7 = Interval([1, 2])
+        test_interval_8 = Interval([-3, 4])
+        self.assertTrue((test_interval_5 + test_interval_6) == Interval([2, 4]))
 
 def main():
     # Gyak 3:
