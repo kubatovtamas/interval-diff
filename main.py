@@ -72,6 +72,22 @@ class Interval:
             return Interval([left, right])
         raise TypeError
 
+    def __mul__(self: Interval, other: Interval) -> Interval:
+        if isinstance(other, Interval):
+            left = min(self.low * other.low, self.low * other.high, self.high * other.low, self.high * other.high)
+            right = max(self.low * other.low, self.low * other.high, self.high * other.low, self.high * other.high)
+
+            return Interval([left, right])
+        raise TypeError
+
+    def __truediv__(self: Interval, other: Interval) -> Interval:
+        if isinstance(other, Interval):
+            if other.low <= 0 <= other.high:
+                raise ZeroDivisionError
+
+            right = Interval([1 / other.high, 1 / other.low])
+            return self * right
+        raise TypeError
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -552,6 +568,23 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(t3 - t4 == Interval([-3, 5]))
 
 
+    def test_interval_mul(self):
+        t1 = Interval([0, 1])
+        t2 = Interval([2, 3])
+        t3 = Interval([1, 2])
+        t4 = Interval([-3, 4])
+
+        self.assertTrue(t1 * t2 == Interval([0, 3]))
+        self.assertTrue(t3 * t4 == Interval([-6, 8]))
+
+
+    def test_interval_div(self):
+        t1 = Interval([1, 2])
+        t2 = Interval([-3, 4])
+
+        with self.assertRaises(ZeroDivisionError):
+            t3 = t1 / t2
+        self.assertTrue(t1 / t1 == Interval([0.5, 2]))
 
 
 
