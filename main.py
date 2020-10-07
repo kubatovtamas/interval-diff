@@ -27,14 +27,27 @@ class Color:
 
 
 class I:
-    def __init__(self, low, high):
-        self.interval = [low, high]
+    def __init__(self, interval: list):
+        self.interval = interval
 
+    @property
     def low(self):
         return self.interval[0]
 
+    @low.setter
+    def low(self, value):
+        self.interval[0] = value
+
+    @property
     def high(self):
         return self.interval[1]
+
+    @high.setter
+    def high(self, value):
+        self.interval[1] = value
+
+    # def __add__(self, other):
+    #     add_interval(self, other)
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -509,14 +522,14 @@ class TestIntervalArithmetic(unittest.TestCase):
 
 
     def test_interval_class(self):
-        test_interval = I(1, 5)
+        test_interval = I([1, 5])
 
         self.assertIsInstance(test_interval, I)
-        self.assertEqual(test_interval.low(), test_interval.interval[0])
-        self.assertEqual(test_interval.high(), test_interval.interval[1])
+        self.assertEqual(test_interval.low, test_interval.interval[0])
+        self.assertEqual(test_interval.high, test_interval.interval[1])
 
-        self.assertEqual(test_interval.low(), 1)
-        self.assertEqual(test_interval.high(), 5)
+        self.assertEqual(test_interval.low, 1)
+        self.assertEqual(test_interval.high, 5)
 
 
 
