@@ -5,7 +5,7 @@
 #TODO make IO script
 
 
-from typing import Union, Optional, NewType
+from typing import Union, Optional, NewType, TypeVar
 import sympy as sp
 import unittest
 import math
@@ -23,9 +23,15 @@ class Color:
     UNDERLINE = '\033[4m'
     END = '\033[0m'
 
-Interval_t = NewType('Interval_t', list)
+
+number = TypeVar('number', int, float)
+
 
 # Interval arithmetic
+
+
+class Interval:
+    pass
 
 
 class Interval:
@@ -51,12 +57,11 @@ class Interval:
     def __str__(self):
         return f"[{self.low}, {self.high}]"
 
-    def __eq__(self, other: Interval_t):
+    def __eq__(self, other: Interval):
         if isinstance(other, Interval):
             return math.isclose(self.low, other.low, rel_tol=0.0001) and math.isclose(self.high, other.high, rel_tol=0.0001)
 
-
-    def __add__(self: Interval_t, other: Interval_t) -> Interval_t:
+    def __add__(self: Interval, other: Interval) -> Interval:
         if isinstance(other, Interval):
             left = self.low + other.low
             right = self.high + other.high
@@ -173,7 +178,7 @@ def log_interval(F: list, do_print: bool = True) -> list:
     return [left, right]
 
 
-def exp_interval(F: list, num: Union[int, float] = math.e, do_print: bool = True) -> list:
+def exp_interval(F: list, num: number = math.e, do_print: bool = True) -> list:
     """
     x^[a, b] = [x^a, x^b]
 
@@ -416,7 +421,7 @@ def cos_diff(F: list, do_print: bool = True) -> list:
 
 # x  -> (x,1)
 # c  -> (c,0)
-def auto_diff(expr: str, evalAt: Union[int, float], *consts: Union[int, float]) -> None:
+def auto_diff(expr: str, evalAt: number, *consts: number) -> None:
     """
         Evaluate auto_diff first, and use differential arithmetic functions for intermediate results
 
