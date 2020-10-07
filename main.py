@@ -4,7 +4,7 @@
 #TODO implement diff.cald operators
 #TODO make IO script
 
-
+from __future__ import annotations
 from typing import Union, Optional, NewType, TypeVar
 import sympy as sp
 import unittest
@@ -28,11 +28,6 @@ number = TypeVar('number', int, float)
 
 
 # Interval arithmetic
-
-
-class Interval:
-    pass
-
 
 class Interval:
     def __init__(self, interval: list):
