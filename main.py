@@ -64,6 +64,15 @@ class Interval:
             return Interval([left, right])
         raise TypeError
 
+    def __sub__(self: Interval, other: Interval) -> Interval:
+        if isinstance(other, Interval):
+            left = self.low - other.high
+            right = self.high - other.low
+
+            return Interval([left, right])
+        raise TypeError
+
+
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
         [a, b] + [c, d] = [a + c, b + d]
@@ -495,6 +504,12 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertEqual(t1.low, 1)
         self.assertEqual(t1.high, 5)
 
+    def test_interval_str(self):
+        t1 = Interval([1, 5])
+        t3 = Interval([1.0001, 5])
+        self.assertEqual(str(t1), "[1, 5]")
+        self.assertEqual(str(t3), "[1.0001, 5]")
+
     def test_interval_eq(self):
         t1 = Interval([1, 5])
         t2 = Interval([1, 5])
@@ -505,15 +520,36 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(t1 == t2)
         self.assertTrue(t1 == t3)
         self.assertFalse(t1 == t4)
-        self.assertTrue((t5 + t6) == Interval([2, 4]))
-
-    def test_interval_str(self):
-        t1 = Interval([1, 5])
-        t3 = Interval([1.0001, 5])
-        self.assertEqual(str(t1), "[1, 5]")
-        self.assertEqual(str(t3), "[1.0001, 5]")
 
 
+    def test_interval_add(self):
+        t1 = Interval([0, 1])
+        t2 = Interval([2, 3])
+        t3 = Interval([1, 2])
+        t4 = Interval([-3, 4])
+
+        self.assertTrue((t1 + t2) == Interval([2, 4]))
+        self.assertTrue((t3 + t4) == Interval([-2, 6]))
+
+        self.assertTrue((t3 + t4) == (t4 + t3))
+        self.assertTrue((t3 + t4) == (t4 + t3))
+
+        t5 = (t3 + t4)
+        self.assertTrue(t5 == (t4 + t3))
+        self.assertTrue(t5 + t1 == (t4 + t3) + t1)
+
+        self.assertTrue(t1 + t2 + t3 == Interval([3, 6]))
+
+
+    def test_interval_sub(self):
+        t1 = Interval([0, 1])
+        t2 = Interval([2, 3])
+        t3 = Interval([1, 2])
+        t4 = Interval([-3, 4])
+
+        self.assertTrue(t1 - t2 == Interval([-3, -1]))
+        self.assertTrue(t2 - t1 == Interval([1, 3]))
+        self.assertTrue(t3 - t4 == Interval([-3, 5]))
 
 
 
