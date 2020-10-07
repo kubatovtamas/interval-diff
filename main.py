@@ -482,7 +482,44 @@ def auto_diff(expr: str, evalAt: Union[int, float], *consts: Union[int, float]) 
 # tmp = div_diff([1, 0], [1, 1])
 
 
-class TestIntervalArithmetic(unittest.TestCase):
+class IntervalClassTestCase(unittest.TestCase):
+    def setUp(self):
+        t7 = Interval([1, 2])
+        t8 = Interval([-3, 4])
+
+    def test_interval_init(self):
+        t1 = Interval([1, 5])
+        self.assertIsInstance(t1, Interval)
+        self.assertEqual(t1.low, t1.interval[0])
+        self.assertEqual(t1.high, t1.interval[1])
+        self.assertEqual(t1.low, 1)
+        self.assertEqual(t1.high, 5)
+
+    def test_interval_eq(self):
+        t1 = Interval([1, 5])
+        t2 = Interval([1, 5])
+        t3 = Interval([1.0001, 5])
+        t4 = Interval([1.0002, 5])
+        t5 = Interval([0, 1])
+        t6 = Interval([2, 3])
+        self.assertTrue(t1 == t2)
+        self.assertTrue(t1 == t3)
+        self.assertFalse(t1 == t4)
+        self.assertTrue((t5 + t6) == Interval([2, 4]))
+
+    def test_interval_str(self):
+        t1 = Interval([1, 5])
+        t3 = Interval([1.0001, 5])
+        self.assertEqual(str(t1), "[1, 5]")
+        self.assertEqual(str(t3), "[1.0001, 5]")
+
+
+
+
+
+
+
+class IntervalArithmeticTestCase(unittest.TestCase):
     def test_add_interval(self):
         self.assertEqual(add_interval([0, 1], [2, 3], False), [2, 4])
         self.assertEqual(add_interval([1, 2], [-3, 4], False), [-2, 6])
@@ -535,30 +572,6 @@ class TestIntervalArithmetic(unittest.TestCase):
                 ), [-5, 6], False
             ), [3, 24])
 
-
-    def test_interval_class(self):
-        test_interval_1 = Interval([1, 5])
-        test_interval_2 = Interval([1, 5])
-        test_interval_3 = Interval([1.0001, 5])
-        test_interval_4 = Interval([1.0002, 5])
-
-        self.assertIsInstance(test_interval_1, Interval)
-        self.assertEqual(test_interval_1.low, test_interval_1.interval[0])
-        self.assertEqual(test_interval_1.high, test_interval_1.interval[1])
-
-        self.assertEqual(test_interval_1.low, 1)
-        self.assertEqual(test_interval_1.high, 5)
-
-        self.assertTrue(test_interval_1 == test_interval_2)
-        self.assertTrue(test_interval_1 == test_interval_3)
-        self.assertFalse(test_interval_1 == test_interval_4)
-
-        test_interval_5 = Interval([0, 1])
-        test_interval_6 = Interval([2, 3])
-        test_interval_7 = Interval([1, 2])
-        test_interval_8 = Interval([-3, 4])
-        self.assertTrue((test_interval_5 + test_interval_6) == Interval([2, 4]))
-
 def main():
     # Gyak 3:
     # I. Intervallum aritmetika
@@ -603,7 +616,7 @@ def main():
 
     # pass
     print(Interval([4, 3]) + Interval([-2, 5]))
-
+    print(Interval([1.0001, 5]))
 
 
 
