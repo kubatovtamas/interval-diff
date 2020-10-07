@@ -104,7 +104,7 @@ class Interval:
         val2 = self.high ** power
         return Interval([min(val1, val2), max(val1, val2)])
 
-    def __rxor__(self: Interval, other: number):
+    def __rxor__(self: Interval, other: number) -> Interval:
         left = other ** self.low
         right = other ** self.high
         return Interval([left, right])
@@ -115,6 +115,35 @@ class Interval:
             return res
         raise ValueError
 
+    def sin(self: Interval) -> Interval:
+        left = min(math.sin(self.low), math.sin(self.high))
+        right = max(math.sin(self.low), math.sin(self.high))
+
+        a = self.low
+        b = self.high
+
+        # shift a between [0, 2pi]
+        while (2 * math.pi) <= a:
+            a = a - (2 * math.pi)
+            b = b - (2 * math.pi)
+
+        while a < 0:
+            a = a + (2 * math.pi)
+            b = b + (2 * math.pi)
+
+        # shorten [a, b] to 2*pi length
+        if (b - a) >= 2 * math.pi:
+            b = a + (2 * math.pi)
+
+        # critical points: 3pi / 2, 7pi / 2, 11pi / 2 -> -1
+        if (a <= ((3 * math.pi) / 2) <= b) or (a <= (7 * math.pi) / 2 <= b) or (a <= (11 * math.pi) / 2 <= b):
+            left = -1
+
+        # critical points: pi / 2, 5pi / 2, 9pi / 2 -> 1
+        if (a <= (math.pi / 2) <= b) or (a <= (5 * math.pi / 2) <= b) or (a <= (9 * math.pi / 2) <= b):
+            right = 1
+
+        return Interval([left, right])
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -211,7 +240,7 @@ def pow_interval(F: list, k: int, do_print: bool = True) -> list:
 
 
 def log_interval(F: list, do_print: bool = True) -> list:
-    #TODO THIS IS FAKE, DONT COPY PASTE
+    #TODO THIS IS exp_interval, DONT COPY PASTE NEXT TIME
     """
     log([a, b]) = [log(a), log(b)]
 
@@ -219,11 +248,11 @@ def log_interval(F: list, do_print: bool = True) -> list:
     :param do_print: print to stdout if true
     :return: logarithm of interval F as list of len 2
     """
-    left = math.e ** F[0]
-    right = math.e ** F[1]
-    if do_print:
-        print(f"num^{F} = {Color.RED}[{math.e}^{F[0]}, {math.e}{F[1]}]{Color.END}")
-    return [left, right]
+    # left = math.e ** F[0]
+    # right = math.e ** F[1]
+    # if do_print:
+    #     print(f"num^{F} = {Color.RED}[{math.e}^{F[0]}, {math.e}{F[1]}]{Color.END}")
+    # return [left, right]
 
 
 def exp_interval(F: list, num: number = math.e, do_print: bool = True) -> list:
@@ -668,6 +697,27 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertEqual(Interval.log(t4), Interval([math.log(1), math.log(3)]))
 
 
+    def test_interval_sin(self):
+        t1 = Interval([0, math.pi])
+        t2 = Interval([-4 * math.pi, 5 * math.pi / 2])
+        t3 = Interval([math.pi, 4 * math.pi])
+        t4 = Interval([0, 4])
+        t5 = Interval([0, 2 * math.pi])
+        t6 = Interval([-1 * math.pi / 2, 0])
+        t7 = Interval([-1 * math.pi / 2, 1])
+
+        self.assertTrue(Interval.sin(t1) == Interval([0, 1]))
+        self.assertTrue(Interval.sin(t2) == Interval([-1, 1]))
+        self.assertTrue(Interval.sin(t3) == Interval([-1, 1]))
+        self.assertTrue(Interval.sin(t4) == Interval([-0.7568, 1]))
+        self.assertTrue(Interval.sin(t5) == Interval([-1, 1]))
+        self.assertTrue(Interval.sin(t6) == Interval([-1, 0]))
+        self.assertTrue(Interval.sin(t7) == Interval([-1, math.sin(1)]))
+
+
+
+
+
 
 class IntervalArithmeticTestCase(unittest.TestCase):
     def test_add_interval(self):
@@ -723,7 +773,7 @@ class IntervalArithmeticTestCase(unittest.TestCase):
             ), [3, 24])
 
 def main():
-    pass
+    print(Interval.sin(Interval([0,4])))
     # Gyak 3:
     # I. Intervallum aritmetika
 
