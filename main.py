@@ -1,3 +1,10 @@
+#TODO make interval class
+#TODO implement int.calc operators
+#TODO make differential class
+#TODO implement diff.cald operators
+#TODO make IO script
+
+
 from typing import Union, Optional
 import sympy as sp
 import unittest
@@ -18,6 +25,16 @@ class Color:
 
 # Interval arithmetic
 
+
+class I:
+    def __init__(self, low, high):
+        self.interval = [low, high]
+
+    def low(self):
+        return self.interval[0]
+
+    def high(self):
+        return self.interval[1]
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -81,7 +98,8 @@ def div_interval(F: list, G: list, do_print: bool = True) -> Optional[list]:
         :return: interval quotient of F and G as list of len 2
     """
     if G[0] <= 0 <= G[1]:
-        print(f"{Color.RED}A nevező intervallum eleme a nulla, így a művelet nem elvégezhető{Color.END}\n")
+        if do_print:
+            print(f"{Color.RED}A nevező intervallum eleme a nulla, így a művelet nem elvégezhető{Color.END}\n")
         return None
     if do_print:
         print(f"{F} / {G} = {F} * [1 / {G[1]:.3f}, 1 / {G[0]:.3f}] = ")
@@ -490,22 +508,34 @@ class TestIntervalArithmetic(unittest.TestCase):
             ), [3, 24])
 
 
+    def test_interval_class(self):
+        test_interval = I(1, 5)
+
+        self.assertIsInstance(test_interval, I)
+        self.assertEqual(test_interval.low(), test_interval.interval[0])
+        self.assertEqual(test_interval.high(), test_interval.interval[1])
+
+        self.assertEqual(test_interval.low(), 1)
+        self.assertEqual(test_interval.high(), 5)
+
+
+
 def main():
     # Gyak 3:
     # I. Intervallum aritmetika
 
     # Team1 [1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = [1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]
-    sub_interval(add_interval([1, 4], div_interval([-1, 2], [-5, -1])), [-2, 1])
+    # sub_interval(add_interval([1, 4], div_interval([-1, 2], [-5, -1])), [-2, 1])
 
     # Team2 X=[-1;2] intervallumon a x^2+3x függvényt, minél szűkebb megoldást
-    add_interval(pow_interval([-1, 2], 2), [-3, 6])  # f1(x) = x^2+3x
+    # add_interval(pow_interval([-1, 2], 2), [-3, 6])  # f1(x) = x^2+3x
     # add_interval(mul_interval([-1, 2], [-1, 2]), [-3, 6])  # f2(x) = x * x + 3x
     # mul_interval([-1, 2], add_interval([-1, 2], [3*-1, 3*2]))  # f3(x) = x*(x+3x)
     # f4(x) = (x+3/2)^2-9/4
 
     # II. Automatikus differenciálás
     # Team 3. a log(x)(x^2+2x+4) -t az x = 3 helyen
-    auto_diff("log(x) * (x^2 + 2*x + 4)", 3, 4)
+    # auto_diff("log(x) * (x^2 + 2*x + 4)", 3, 4)
     # mul_diff(log_diff([3, 1]), add_diff(add_diff(pow_diff([3, 1], 2), [2*3, 2*1]), [4, 0]))
 
     # Team 4. a (x^3 - x^2 + 5)(x + 4) -t az x = 2 helyen
@@ -521,7 +551,22 @@ def main():
     # auto_diff("sin(1^2) * (x^3 + 2)", 2, 1, 2)
     # mul_diff(sin_diff(pow_diff([1, 0], 2)), add_diff(pow_diff([2, 1], 3), [2, 0]))
 
+    # 3. Mi lesz az f(x,y) = x^3+y^2/x+x*cos(y)+4 kétváltozós függvény
+    # automatikus deriváltja x = 2 és y = 3 helyen?
+    # auto_diff("x^3 + 3^2 / x + x * cos(3) + 4", 2, 3, 4)  # x szerinti
+    # add_diff(add_diff(add_diff(pow_diff([2, 1], 3), div_diff(pow_diff([3, 0], 2), [2, 1])), mul_diff([2, 1], cos_diff([3, 0]))), [4, 0])
+    #
+    # auto_diff("2^3 + x^2 / 2 + 2 * cos(x) + 4", 3, 3, 4)  # y szerinti
+    # add_diff(add_diff(add_diff(pow_diff([2, 0], 3), div_diff(pow_diff([3, 1], 2), [2, 0])), mul_diff([2, 0], cos_diff([3, 1]))), [4, 0])
+
+    # 4. Értékeld ki a fenti f(x,y) függvényt az x=[-1;1] és y=[0,4] intervallumon!
+    # (((x ^ 3) + ((y ^ 2) / x)) + (x * (cos(y)))) + 4
+    pass
+
+
+
+
 
 if __name__ == '__main__':
-    main()
-    # unittest.main()
+    # main()
+    unittest.main()
