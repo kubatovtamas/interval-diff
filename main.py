@@ -143,6 +143,44 @@ class Interval:
         if (a <= (math.pi / 2) <= b) or (a <= (5 * math.pi / 2) <= b) or (a <= (9 * math.pi / 2) <= b):
             right = 1
 
+        if math.isclose(left, 0, abs_tol=0.0001):
+            left = 0
+        if math.isclose(right, 0, abs_tol=0.0001):
+            right = 0
+        return Interval([left, right])
+
+    def cos(self: Interval) -> Interval:
+        left = min(math.cos(self.low), math.cos(self.high))
+        right = max(math.cos(self.low), math.cos(self.high))
+
+        a = self.low
+        b = self.high
+
+        # shift a between [-pi, pi]
+        while math.pi <= a:
+            a = a - (2 * math.pi)
+            b = b - (2 * math.pi)
+
+        while a < (-1 * math.pi):
+            a = a + (2 * math.pi)
+            b = b + (2 * math.pi)
+
+        # shorten [a, b] to 2*pi length
+        if (b - a) >= 2 * math.pi:
+            b = a + (2 * math.pi)
+
+        # critical points: -pi, pi, 3pi
+        if (a <= (-1 * math.pi) <= b) or (a <= math.pi <= b) or (a <= 3 * math.pi <= b):
+            left = -1
+
+        # critical points: 0, 2pi, 4pi
+        if (a <= 0 <= b) or (a <= (2 * math.pi) <= b) or (a <= (4 * math.pi) <= b):
+            right = 1
+
+        if math.isclose(left, 0, abs_tol=0.0001):
+            left = 0
+        if math.isclose(right, 0, abs_tol=0.0001):
+            right = 0
         return Interval([left, right])
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
@@ -714,6 +752,20 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(Interval.sin(t6) == Interval([-1, 0]))
         self.assertTrue(Interval.sin(t7) == Interval([-1, math.sin(1)]))
 
+    def test_cos_interval(self):
+        t1 = Interval([0, 4])
+        t2 = Interval([math.pi, 4 * math.pi])
+        t3 = Interval([0, 13])
+        t4 = Interval([0, 7])
+        t5 = Interval([-math.pi / 2, 0])
+        t6 = Interval([-math.pi, -math.pi / 2])
+
+        self.assertTrue(Interval.cos(t1) == Interval([-1, 1]))
+        self.assertTrue(Interval.cos(t2) == Interval([-1, 1]))
+        self.assertTrue(Interval.cos(t3) == Interval([-1, 1]))
+        self.assertTrue(Interval.cos(t4) == Interval([-1, 1]))
+        self.assertTrue(Interval.cos(t5) == Interval([0, 1]))
+        self.assertTrue(Interval.cos(t6) == Interval([-1, 0]))
 
 
 
@@ -773,7 +825,7 @@ class IntervalArithmeticTestCase(unittest.TestCase):
             ), [3, 24])
 
 def main():
-    print(Interval.sin(Interval([0,4])))
+    print(Interval.cos(Interval([-1 * math.pi / 2, 0])))
     # Gyak 3:
     # I. Intervallum aritmetika
 
