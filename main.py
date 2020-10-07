@@ -1,14 +1,17 @@
-#TODO make interval class
 #TODO implement int.calc operators
 #TODO make differential class
 #TODO implement diff.cald operators
 #TODO make IO script
+
 
 from __future__ import annotations
 from typing import  Optional, TypeVar
 import sympy as sp
 import unittest
 import math
+
+
+number = TypeVar('number', int, float)
 
 
 class Color:
@@ -24,15 +27,11 @@ class Color:
     END = '\033[0m'
 
 
-number = TypeVar('number', int, float)
 
 
-class Demo():
-    def __xor__(self, other):
-        print("__xor__", other)
 
-    def __rxor__(self, other):
-        print("__rxor__", other)
+
+
 
 
 
@@ -109,6 +108,13 @@ class Interval:
         left = other ** self.low
         right = other ** self.high
         return Interval([left, right])
+
+    def log(self, log: number = math.e) -> Interval:
+        if self.low > 0 and self.high > 0 and log > 1:
+            res = Interval([math.log(self.low, log), math.log(self.high, log)])
+            return res
+        raise ValueError
+
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -646,13 +652,21 @@ class IntervalClassTestCase(unittest.TestCase):
 
 
 
-    # def test_interval_log(self):
-    #     t1 = Interval([-1, 2])
-    #     t2 = Interval([1, 2])
-    #     t3 = Interval([-2, -1])
-    #     t4 = Interval([-3, -2])
-    #
-    #     self.assertTrue(Interval.log(t1) == Interval([1, 1]))
+    def test_interval_log(self):
+        t1 = Interval([-1, 2])
+        t2 = Interval([0, 2])
+        t3 = Interval([2, 5])
+        t4 = Interval([1, 3])
+
+        with self.assertRaises(ValueError):
+            Interval.log(t1)
+            Interval.log(t2)
+            Interval.log(t3, 0)
+            Interval.log(t3, 0.5)
+
+        self.assertEqual(Interval.log(t3), Interval([math.log(2), math.log(5)]))
+        self.assertEqual(Interval.log(t4), Interval([math.log(1), math.log(3)]))
+
 
 
 class IntervalArithmeticTestCase(unittest.TestCase):
@@ -709,6 +723,7 @@ class IntervalArithmeticTestCase(unittest.TestCase):
             ), [3, 24])
 
 def main():
+    pass
     # Gyak 3:
     # I. Intervallum aritmetika
 
@@ -753,11 +768,6 @@ def main():
     # pass
     # print(Interval([4, 3]) + Interval([-2, 5]))
     # print(Interval([1.0001, 5]))
-
-    a = Demo()
-
-    math.e ^ a
-    a ^ math.e
 
 
 
