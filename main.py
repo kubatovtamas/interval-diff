@@ -5,7 +5,7 @@
 #TODO make IO script
 
 from __future__ import annotations
-from typing import Union, Optional, NewType, TypeVar
+from typing import  Optional, TypeVar
 import sympy as sp
 import unittest
 import math
@@ -88,6 +88,16 @@ class Interval:
             right = Interval([1 / other.high, 1 / other.low])
             return self * right
         raise TypeError
+
+    def __pow__(self: Interval, power: int, modulo=None):
+        if self.low <= 0 <= self.high:
+            return Interval([0, (self.high ** power)])
+        val1 = self.low ** power
+        val2 = self.high ** power
+        return Interval([min(val1, val2), max(val1, val2)])
+
+
+
 
 def add_interval(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -586,6 +596,31 @@ class IntervalClassTestCase(unittest.TestCase):
             t3 = t1 / t2
         self.assertTrue(t1 / t1 == Interval([0.5, 2]))
 
+
+    def test_interval_pow(self):
+        t1 = Interval([-1, 2])
+        t2 = Interval([1, 2])
+        t3 = Interval([-2, -1])
+        t4 = Interval([-3, -2])
+
+        self.assertTrue(t1 ** 3 == Interval([0, 8]))
+        self.assertTrue(t1 ** 2 == Interval([0, 4]))
+
+        self.assertTrue(t2 ** 2 == Interval([1, 4]))
+        self.assertTrue(t2 ** 0 == Interval([1, 1]))
+        self.assertTrue(t2 ** 1 == t2)
+
+        self.assertTrue(t2 ** -1 == Interval([0.5, 1]))
+        self.assertTrue(t2 ** -2 == Interval([0.25, 1]))
+        self.assertTrue(t2 ** -3 == Interval([1/8, 1]))
+
+
+        self.assertTrue(t3 ** -1 == Interval([-1, -1/2]))
+        self.assertTrue(t3 ** -3 == Interval([-1, -1/8]))
+        self.assertTrue(t3 ** -4 == Interval([1/16, 1]))
+
+        self.assertTrue(t4 ** -3 == Interval([-1/8, -1/27]))
+        self.assertTrue(t4 ** 0 == Interval([1, 1]))
 
 
 class IntervalArithmeticTestCase(unittest.TestCase):
