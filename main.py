@@ -163,16 +163,16 @@ class Interval:
         print(f"{other}^{self} = {Color.RED}[{other}^{self.low}, {other}^{self.high}]{Color.END}")
         return Interval([left, right])
 
-    def log(self: Interval, log: number = math.e) -> Interval:
+    def log(self: Interval, base: number = math.e) -> Interval:
         """
             log([a, b]) = [log(a), log(b)]
 
-            :param log: base of log
+            :param base: base of log
             :return: new Interval
         """
-        if self.low > 0 and self.high > 0 and log > 1:
+        if self.low > 0 and self.high > 0 and base > 1:
             print(f"log({self}) = {Color.RED}[log({self.low}), log({self.high})]{Color.END}")
-            return Interval([math.log(self.low, log), math.log(self.high, log)])
+            return Interval([math.log(self.low, base), math.log(self.high, base)])
         raise ValueError
 
     def sin(self: Interval) -> Interval:
@@ -280,11 +280,9 @@ class Interval:
 
 
 # Differential arithmetic
-# Power rule: (x^n)' = n * x^(n-1)
-# Product rule: (f * g)' = (f * g') + (f' * g)
-# Quotient rule: (f / g)' = ((f' * g) - (f * g')) / g^2
+# Power rule:
+
 # Chain rule: (f(g(x)))' = f'(g(x)) * g'(x)
-# Addition rule: (f + g)' = f' + g'
 
 
 class Differential:
@@ -365,7 +363,82 @@ class Differential:
             return Differential([left, right])
         raise TypeError
 
+    def __truediv__(self: Differential, other: Differential) -> Differential:
+        """
+            (F / G)' = ((F' * G) - (F * G')) / G^2
 
+            :param other: Differential instance
+            :return: new Differential
+        """
+        if isinstance(other, Differential):
+            left = self.val / other.val
+            right = (self.diff * other.val - self.val * other.diff) / other.val ** 2
+
+            print(f"{self} / {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
+    def __pow__(self: Differential, power: number, modulo=None) -> Differential:
+        """
+            (F^k)' = k * F^(k-1)
+
+            :param power: the power to which the Differential interval is raised
+            :return: new Differential
+        """
+        if isinstance(power, (int, float)):
+            left = self.val ** power
+            right = power * self.val ** (power - 1) * self.diff
+
+
+            print(f"{self}^{power} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
+    def log(self: Differential, base: number = math.e) -> Differential:
+        """
+            log_e([a,b]) = [log_e(a), b / a] if base == e
+            log_a([a,b]) = [log_a(a), b / (a * ln a)] otherwise
+
+            :param base: the logarithm's base
+            :return: new Differential
+        """
+        if isinstance(base, (int, float)):
+            if self.val > 0 and self.diff > 0 and base > 1:
+                left = math.log(self.val, base)
+
+                if base == math.e:
+                    right = self.diff / self.val
+                else:
+                    right = self.diff / (self.val * math.log(base))
+
+                print(f"log({self}) = {Color.RED}[{left}, {right}]{Color.END}")
+                return Differential([left, right])
+            raise ValueError
+        raise TypeError
+
+    def sin(self: Differential) -> Differential:
+        """
+            sin([a,b]) = [sin(a), cos(a) * b]
+
+            :return: new Differential
+        """
+        left = math.sin(self.val)
+        right = math.cos(self.val) * self.diff
+
+        print(f"sin({self}) = {Color.RED}[{left}, {right}]{Color.END}")
+        return Differential([left, right])
+
+    def cos(self: Differential) -> Differential:
+        """
+            cos([a,b]) = [cos(a), -1 * sin(a) * b]
+
+            :return: new Differential
+        """
+        left = math.cos(self.val)
+        right = -1 * math.sin(self.val) * self.diff
+
+        print(f"cos({self}) = {Color.RED}[{left}, {right}]{Color.END}")
+        return Differential([left, right])
 
 def add_diff(F: list, G: list, do_print: bool = True) -> list:
     """
@@ -754,6 +827,64 @@ class DifferentialTestCase(unittest.TestCase):
         self.assertTrue(c1 * d1 == Differential([6, 3]))
         self.assertTrue(c2 * d2 == Differential([120, 12]))
         self.assertTrue(c3 * d3 == Differential([-40, 8]))
+
+    def test_differential_truediv(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+        c1 = Differential([3, 0])
+        c2 = Differential([12, 0])
+        c3 = Differential([8, 0])
+
+        self.assertTrue(d1 / c1 == Differential([2/3, 1/3]))
+        self.assertTrue(c1 / d1 == Differential([3/2, -3/4]))
+        self.assertTrue(d2 / c2 == Differential([5/6, 1/12]))
+        self.assertTrue(d3 / c3 == Differential([-5/8, 1/8]))
+
+    def test_differential_pow(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+
+        self.assertTrue(d1 ** 0 == Differential([1, 0]))
+        self.assertTrue(d1 ** 1 == Differential([2, 1]))
+        self.assertTrue(d1 ** -1 == Differential([1/2, -1/4]))
+
+        self.assertTrue(d2 ** 3 == Differential([1000, 300]))
+
+        self.assertTrue(d3 ** 3 == Differential([-125, 75]))
+        self.assertTrue(d3 ** -3 == Differential([-1/125, -3/625]))
+
+    def test_differential_log(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+
+        self.assertTrue(d1.log() == Differential([math.log(2), 1/2]))
+        self.assertTrue(d2.log() == Differential([math.log(10), 1/10]))
+        self.assertEqual(d2.log(2).interval[0], math.log(10) / math.log(2))
+        self.assertEqual(d2.log(2).interval[1], 1 / math.log(1024))
+
+        with self.assertRaises(ValueError):
+            d3.log()
+
+    def test_differential_sin(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+
+        self.assertTrue(d1.sin() == Differential([math.sin(2), math.cos(2)]))
+        self.assertTrue(d2.sin() == Differential([math.sin(10), math.cos(10)]))
+        self.assertTrue(d3.sin() == Differential([- math.sin(5), math.cos(5)]))
+
+    def test_differential_cos(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+
+        self.assertTrue(d1.cos() == Differential([math.cos(2), -math.sin(2)]))
+        self.assertTrue(d2.cos() == Differential([math.cos(10), -math.sin(10)]))
+        self.assertTrue(d3.cos() == Differential([math.cos(5), math.sin(5)]))
 
 
 def main():
