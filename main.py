@@ -4,8 +4,7 @@
 
 
 from __future__ import annotations
-from typing import TypeVar
-import sympy as sp
+from typing import TypeVar, Union
 import unittest
 import math
 
@@ -280,11 +279,6 @@ class Interval:
 
 
 # Differential arithmetic
-# Power rule:
-
-# Chain rule: (f(g(x)))' = f'(g(x)) * g'(x)
-
-
 class Differential:
     def __init__(self, interval: list):
         self.interval = interval
@@ -318,65 +312,145 @@ class Differential:
                    and math.isclose(self.diff, other.diff, rel_tol=0.0001)
         raise TypeError
 
-    def __add__(self: Differential, other: Differential) -> Differential:
+    def __add__(self: Differential, other: Union[Interval, number]) -> Differential:
         """
             (F + G)' = F' + G'
 
             :param other: Differential instance
             :return: new Differential
         """
-        if isinstance(other, Differential):
+        if isinstance(other, Differential):  # F + G
             left = self.val + other.val
             right = self.diff + other.diff
 
             print(f"{self} + {other} = {Color.RED}{[left, right]}{Color.END}")
             return Differential([left, right])
+        elif isinstance(other, (int, float)):  # F + c
+            left = self.val + other
+            right = self.diff
+
+            print(f"{self} + {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
         raise TypeError
 
-    def __sub__(self: Differential, other: Differential) -> Differential:
+    def __radd__(self: Differential, other: number) -> Differential:
+        """
+            (F + G)' = F' + G'
+
+            :param other: Differential instance
+            :return: new Differential
+        """
+
+        if isinstance(other, (int, float)):  # c + F
+            left = self.val + other
+            right = self.diff
+
+            print(f"{self} + {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
+    def __sub__(self: Differential, other: Union[Interval, number]) -> Differential:
         """
             (F - G)' = F' - G'
 
             :param other: Differential instance
             :return: new Differential
         """
-        if isinstance(other, Differential):
+        if isinstance(other, Differential):  # F - G
             left = self.val - other.val
             right = self.diff - other.diff
 
             print(f"{self} - {other} = {Color.RED}{[left, right]}{Color.END}")
             return Differential([left, right])
+        elif isinstance(other, (int, float)):  # F - c
+            left = self.val - other
+            right = self.diff
+
+            print(f"{self} - {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
         raise TypeError
 
-    def __mul__(self: Differential, other: Differential) -> Differential:
+    def __rsub__(self: Differential, other: number) -> Differential:
+        """
+            (F - G)' = F' - G'
+
+            :param other: Differential instance
+            :return: new Differential
+        """
+        if isinstance(other, (int, float)):  # c - F
+            left = other - self.val
+            right = -self.diff
+
+            print(f"{other} - {self} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
+    def __mul__(self: Differential, other: Union[Interval, number]) -> Differential:
         """
             (F * G)' = (F * G') + (F' * G)
 
             :param other: Differential instance
             :return: new Differential
         """
-        if isinstance(other, Differential):
+        if isinstance(other, Differential):  # F * G
             left = self.val * other.val
             right = self.val * other.diff + self.diff * other.val
 
             print(f"{self} * {other} = {Color.RED}{[left, right]}{Color.END}")
             return Differential([left, right])
+        elif isinstance(other, (int, float)):  # F * c
+            left = other * self.val
+            right = other * self.diff
+
+            print(f"{other} * {self} = {Color.RED}[{left}, {right}]{Color.END}")
+            return Differential([left, right])
         raise TypeError
 
-    def __truediv__(self: Differential, other: Differential) -> Differential:
+    def __rmul__(self: Differential, other: number) -> Differential:
+        """
+            n * [a, b] = [n * a, n * b]
+
+            :param other: a real number
+            :return: new Differential
+        """
+        if isinstance(other, (int, float)):  # c * F
+            left = other * self.val
+            right = other * self.diff
+
+            print(f"{other} * {self} = {Color.RED}[{left}, {right}]{Color.END}")
+            return Differential([left, right])
+
+    def __truediv__(self: Differential, other: Union[Interval, number]) -> Differential:
         """
             (F / G)' = ((F' * G) - (F * G')) / G^2
 
             :param other: Differential instance
             :return: new Differential
         """
-        if isinstance(other, Differential):
+        if isinstance(other, Differential):  # F / G
             left = self.val / other.val
             right = (self.diff * other.val - self.val * other.diff) / other.val ** 2
 
             print(f"{self} / {other} = {Color.RED}{[left, right]}{Color.END}")
             return Differential([left, right])
+        elif isinstance(other, (int, float)):  # F / c
+            left = other / self.val
+            right = other / self.diff
+
+            print(f"{other} / {self} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
         raise TypeError
+
+    def __rtruediv__(self: Differential, other: number) -> Differential:
+        """
+            (F / G)' = ((F' * G) - (F * G')) / G^2
+
+            :param other: Differential instance
+            :return: new Differential
+        """
+        if isinstance(other, (int, float)):  # c / F
+            print(f"{other} / {self} = ({other} * {self}^-1)")
+            return (other * self ** -1)
 
     def __pow__(self: Differential, power: number, modulo=None) -> Differential:
         """
@@ -439,194 +513,6 @@ class Differential:
 
         print(f"cos({self}) = {Color.RED}[{left}, {right}]{Color.END}")
         return Differential([left, right])
-
-def add_diff(F: list, G: list, do_print: bool = True) -> list:
-    """
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: differential interval sum of F and G as list of len 2
-    """
-    left = F[0] + G[0]
-    right = F[1] + G[1]
-    if do_print:
-        print(f"{F} + {G} = {Color.RED}{[left, right]}{Color.END}")
-    return [left, right]
-
-
-def sub_diff(F: list, G: list, do_print: bool = True) -> list:
-    """
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: differential interval difference of F and G as list of len 2
-    """
-    left = F[0] - G[0]
-    right = F[1] - G[1]
-    if do_print:
-        print(f"{F} - {G} = {Color.RED}{[left, right]}{Color.END}")
-    return [left, right]
-
-
-def mul_diff(F: list, G: list, do_print: bool = True) -> list:
-    """
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: differential interval product of F and G as list of len 2
-    """
-    left = F[0] * G[0]
-    right = F[0] * G[1] + F[1] * G[0]
-    if do_print:
-        print(f"[{F[0]:.3f},{F[1]:.3f}] * [{G[0]:.3f},{G[1]:.3f}] = {Color.RED}{[left, right]}{Color.END}")
-    return [left, right]
-
-
-def div_diff(F: list, G: list, do_print: bool = True) -> list:
-    """
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: differential interval quotient of F and G as list of len 2
-    """
-    left = F[0] / G[0]
-    right = (F[1] * G[0] - F[0] * G[1]) / G[0] ** 2
-    if do_print:
-        print(f"{F} / {G} = {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
-
-def pow_diff(F: list, k: int, do_print: bool = True) -> list:
-    """
-        :param F: the base interval as list of len 2
-        :param k: the power to which F is raised
-        :param do_print: print to stdout if true
-        :return: differential interval F raised to power k as list of len 2
-    """
-    left = F[0] ** k
-    right = k * F[0] ** (k - 1) * F[1]
-    if do_print:
-        print(f"{F}^{k} = {Color.RED}{[left, right]}{Color.END}")
-    return [left, right]
-
-
-def log_diff(F: list, do_print: bool = True) -> list:
-    """
-        log([a,b]) = [log(a), b / a]
-
-        :param F: interval as list of len 2
-        :param do_print: print to stdout if true
-        :return: [log(a), log(a)'] as list of len 2
-    """
-
-    left = math.log(F[0], math.e)
-    right = F[1] / F[0]
-
-    if do_print:
-        print(f"log({F}) = {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
-
-def sin_diff(F: list, do_print: bool = True) -> list:
-    """
-        sin([a,b]) = [sin(a), cos(a) * b]
-
-        :param F: interval as list of len 2
-        :param do_print: print to stdout if true
-        :return: [sin(a), sin(a)'] as list of len 2
-    """
-
-    left = math.sin(F[0])
-    right = math.cos(F[0]) * F[1]
-
-    if do_print:
-        print(f"sin({F}) = {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
-
-def cos_diff(F: list, do_print: bool = True) -> list:
-    """
-        cos([a,b]) = [cos(a), -1 * sin(a) * b]
-
-        :param F: interval as list of len 2
-        :param do_print: print to stdout if true
-        :return: [cos(a), cos(a)'] as list of len 2
-    """
-
-    left = math.cos(F[0])
-    right = -1 * math.sin(F[0]) * F[1]
-
-    if do_print:
-        print(f"cos({F}) = {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
-
-# x  -> (x,1)
-# c  -> (c,0)
-def auto_diff(expr: str, evalAt: number, *consts: number) -> None:
-    """
-        Evaluate auto_diff first, and use differential arithmetic functions for intermediate results
-
-        Multiple variable differential:
-
-        (x,y)' by x -> (x, 1), y -> (y, 0)
-
-        (x,y)' by y -> (y, 1), x -> (x, 0)
-
-        :param expr: The expression to be evaluated                             eg. "x^2 + 3"
-        :param evalAt: The value of x for the expression to be evaluated at     eg. 4
-        :param consts: The constants                                            eg. 3
-    """
-    print(f"\n---------- f(x) = {expr}, az x = {evalAt} helyen: ----------\n")
-
-    variable_pair_form = f"({evalAt}, 1)"
-    expr_str = str(expr)
-    for i in range(len(consts)):
-        constant_pair_form = f"({consts[i]},0)"
-        expr_str = expr_str.replace(str(consts[i]), constant_pair_form)
-    print(f"f(x) = {expr_str}")
-    print(f"f({evalAt}) = {expr_str.replace('x', variable_pair_form)}")
-
-    print("\n>> Use mul_diff(F, G) / add_diff(F, G) / sub_diff(F, G) / "
-          "div_diff(F, G) / pow_diff(F, k) for intermediate results <<\n")
-
-    x = sp.Symbol('x')
-    f = sp.lambdify(x, expr)
-    f_prime = sp.diff(expr, x)
-    f_prime = sp.lambdify(x, f_prime)
-
-    print(f"= {Color.RED}[{float(f(evalAt)):.3f}, {float(f_prime(evalAt)):.3f}]{Color.END}")
-
-
-# Examples for interval arithmetic:
-# add_interval([0, 1], [2, 3])
-# sub_interval([2, 3], [0, 1])
-# mul_interval([-2, 3], [-1, 4])
-# div_interval([8, 12], [6, 5])
-# pow_interval([-1, 5], 2)
-
-# Examples for differential arithmetic:
-# mul_diff([3, 1], [3, 1])
-# add_diff([16, 8], [3, 0])
-# sub_diff([16, 8], [-3, 0])
-# div_diff([6, 1], [3, 0])
-# pow_diff([4, 1], 2)
-
-# Examples for auto_diff:
-# (x^2+3)^2, x = 2, constants = 3
-# auto_diff("(x^2+3)^2", 2, 3)
-# tmp = pow_diff([2, 1], 2)
-# tmp2 = add_diff(tmp, [3, 0])
-# res = pow_diff(tmp2, 2)
-
-# (x+4) / 3, x = 2, constants = 4, 3
-# auto_diff("(x+4)/3", 2, 4, 3)
-# tmp = add_diff([2, 1], [4, 0])
-# tmp2 = div_diff(tmp, [3, 0])
-
-# (1/x), x = 1, constants = 1
-# auto_diff("1/x", 1, 1)
-# tmp = div_diff([1, 0], [1, 1])
 
 
 class IntervalClassTestCase(unittest.TestCase):
@@ -886,66 +772,59 @@ class DifferentialTestCase(unittest.TestCase):
         self.assertTrue(d2.cos() == Differential([math.cos(10), -math.sin(10)]))
         self.assertTrue(d3.cos() == Differential([math.cos(5), math.sin(5)]))
 
+    def test_differential_rmul(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+
+        self.assertTrue(2 * d1 == Differential([4, 2]))
+        self.assertTrue(5 * d2 == Differential([50, 5]))
+        self.assertTrue(-3 * d3 == Differential([15, -3]))
+        self.assertTrue(0 * d1 == Differential([0, 0]))
+
 
 def main():
-    # print("Team1 [1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = "
-    #       "[1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]")
-    #
-    # i1 = Interval([1, 4])
-    # i2 = Interval([-1, 2])
-    # i3 = Interval([-5, -1])
-    # i4 = Interval([-2, 1])
-    #
-    # i1 + i2 / i3 - i4
-
-
-    d1 = Differential([2, 1])
-    c1 = Differential([3, 0])
-    d1 + c1
-
-    # Gyak 3:
     # I. Intervallum aritmetika
+    print("[1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = "
+          "[1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]")
 
-    # sub_interval(add_interval([1, 4], div_interval([-1, 2], [-5, -1])), [-2, 1])
+    i1 = Interval([1, 4])
+    i2 = Interval([-1, 2])
+    i3 = Interval([-5, -1])
+    i4 = Interval([-2, 1])
 
-    # Team2 X=[-1;2] intervallumon a x^2+3x függvényt, minél szűkebb megoldást
-    # add_interval(pow_interval([-1, 2], 2), [-3, 6])  # f1(x) = x^2+3x
-    # add_interval(mul_interval([-1, 2], [-1, 2]), [-3, 6])  # f2(x) = x * x + 3x
-    # mul_interval([-1, 2], add_interval([-1, 2], [3*-1, 3*2]))  # f3(x) = x*(x+3x)
-    # f4(x) = (x+3/2)^2-9/4
+    i1 + i2 / i3 - i4
+
 
     # II. Automatikus differenciálás
-    # Team 3. a log(x)(x^2+2x+4) -t az x = 3 helyen
-    # auto_diff("log(x) * (x^2 + 2*x + 4)", 3, 4)
-    # mul_diff(log_diff([3, 1]), add_diff(add_diff(pow_diff([3, 1], 2), [2*3, 2*1]), [4, 0]))
+    print("\nlog(x) * (x^2+2x+4) -t az x = 3 helyen")
 
-    # Team 4. a (x^3 - x^2 + 5)(x + 4) -t az x = 2 helyen
-    # auto_diff("(x^3 - x^2 + 5) * (x + 4)", 2, 5, 4)
-    # mul_diff(add_diff(sub_diff(pow_diff([2, 1], 3), pow_diff([2, 1], 2)), [5, 0]), add_diff([2, 1], [4, 0]))
+    x = Differential([3, 1])
+    c = Differential([4, 0])
 
-    # Extra: sin(x^2)(y^3+2), x = 1, y = 2
-    # diff x
-    # auto_diff("sin(x^2) * (2^3 + 2)", 1, 2)
-    # mul_diff(sin_diff(pow_diff([1, 1], 2)), add_diff(pow_diff([2, 0], 3), [2, 0]))
+    x.log() * (x**2 + 2*x +c)  # [20.873, 15.122]
 
-    # diff y
-    # auto_diff("sin(1^2) * (x^3 + 2)", 2, 1, 2)
-    # mul_diff(sin_diff(pow_diff([1, 0], 2)), add_diff(pow_diff([2, 1], 3), [2, 0]))
 
-    # 3. Mi lesz az f(x,y) = x^3+y^2/x+x*cos(y)+4 kétváltozós függvény
-    # automatikus deriváltja x = 2 és y = 3 helyen?
-    # auto_diff("x^3 + 3^2 / x + x * cos(3) + 4", 2, 3, 4)  # x szerinti
-    # add_diff(add_diff(add_diff(pow_diff([2, 1], 3), div_diff(pow_diff([3, 0], 2), [2, 1])), mul_diff([2, 1], cos_diff([3, 0]))), [4, 0])
-    #
-    # auto_diff("2^3 + x^2 / 2 + 2 * cos(x) + 4", 3, 3, 4)  # y szerinti
-    # add_diff(add_diff(add_diff(pow_diff([2, 0], 3), div_diff(pow_diff([3, 1], 2), [2, 0])), mul_diff([2, 0], cos_diff([3, 1]))), [4, 0])
+    print("\n\n(x^3 - x^2 + 5)(x + 4) -t az x = 2 helyen")
 
-    # 4. Értékeld ki a fenti f(x,y) függvényt az x=[-1;1] és y=[0,4] intervallumon!
-    # (((x ^ 3) + ((y ^ 2) / x)) + (x * (cos(y)))) + 4
+    x = Differential([2, 1])
+    c1 = Differential([5, 0])
+    c2 = Differential([4, 0])
+    (x**3 - x**2 + c1) * (x + c2)  ## [54, 57]
 
-    # pass
-    # print(Interval([4, 3]) + Interval([-2, 5]))
-    # print(Interval([1.0001, 5]))
+    print("\n\nsin(x^2) * (y^3+2), x = 1, y = 2")
+    x = Differential([1, 1])
+    xd = Differential([1, 0])
+    y = Differential([2, 1])
+    yd = Differential([2, 0])
+    c = Differential([2, 0])
+
+    print("\nx szerinti deriváltja:")
+    (x ** 2).sin() * (yd ** 3 + c)  # [8.414, 10.806]
+
+    print("\ny szerinti deriváltja:")
+    (xd ** 2).sin() * (y ** 3 + c)  # [8.415,10.1]
+
 
 
 if __name__ == '__main__':
