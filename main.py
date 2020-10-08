@@ -146,6 +146,7 @@ class Interval:
             return Interval([0, (self.high ** power)])
         val1 = self.low ** power
         val2 = self.high ** power
+
         print(f"{self}^{power} = {Color.RED}[{self.low ** power}, {self.high ** power}]{Color.END}")
         return Interval([min(val1, val2), max(val1, val2)])
 
@@ -158,6 +159,7 @@ class Interval:
         """
         left = other ** self.low
         right = other ** self.high
+
         print(f"{other}^{self} = {Color.RED}[{other}^{self.low}, {other}^{self.high}]{Color.END}")
         return Interval([left, right])
 
@@ -213,6 +215,7 @@ class Interval:
         if (a <= (math.pi / 2) <= b) or (a <= (5 * math.pi / 2) <= b) or (a <= (9 * math.pi / 2) <= b):
             right = 1
 
+        # Numeric errors close to 0 and 1
         if math.isclose(left, 0, abs_tol=0.0001):
             left = 0
         if math.isclose(right, 0, abs_tol=0.0001):
@@ -263,10 +266,12 @@ class Interval:
         if (a <= 0 <= b) or (a <= (2 * math.pi) <= b) or (a <= (4 * math.pi) <= b):
             right = 1
 
+        # Numeric errors close to 0 and 1
         if math.isclose(left, 0, abs_tol=0.0001):
             left = 0
         if math.isclose(right, 0, abs_tol=0.0001):
             right = 0
+
         print(f"cos({self}) = [min(cos(a), cos(b)), max(cos(a), cos(b))]\n"
               f"[-1, ...] ha -pi + 2k * pi eleme [a, b]-nek,\n"
               f"[..., 1]  ha 0 + 2k * pi eleme [a, b]-nek\n"
@@ -317,17 +322,49 @@ class Differential:
 
     def __add__(self: Differential, other: Differential) -> Differential:
         """
-        (F + G)' = F' + G'
+            (F + G)' = F' + G'
 
-        :param other: Differential instance
-        :return: new Differential
+            :param other: Differential instance
+            :return: new Differential
         """
         if isinstance(other, Differential):
             left = self.val + other.val
             right = self.diff + other.diff
+
             print(f"{self} + {other} = {Color.RED}{[left, right]}{Color.END}")
             return Differential([left, right])
         raise TypeError
+
+    def __sub__(self: Differential, other: Differential) -> Differential:
+        """
+            (F - G)' = F' - G'
+
+            :param other: Differential instance
+            :return: new Differential
+        """
+        if isinstance(other, Differential):
+            left = self.val - other.val
+            right = self.diff - other.diff
+
+            print(f"{self} - {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
+    def __mul__(self: Differential, other: Differential) -> Differential:
+        """
+            (F * G)' = (F * G') + (F' * G)
+
+            :param other: Differential instance
+            :return: new Differential
+        """
+        if isinstance(other, Differential):
+            left = self.val * other.val
+            right = self.val * other.diff + self.diff * other.val
+
+            print(f"{self} * {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
+
 
 
 def add_diff(F: list, G: list, do_print: bool = True) -> list:
@@ -675,6 +712,7 @@ class IntervalClassTestCase(unittest.TestCase):
 class DifferentialTestCase(unittest.TestCase):
     def test_differential_init(self):
         d1 = Differential([1, 5])
+
         self.assertIsInstance(d1, Differential)
         self.assertEqual(d1.val, d1.interval[0])
         self.assertEqual(d1.diff, d1.interval[1])
@@ -686,11 +724,36 @@ class DifferentialTestCase(unittest.TestCase):
         d2 = Differential([13,1])
         c1 = Differential([3,0])
         c2 = Differential([1,0])
+
         self.assertTrue(d1 + c1 == Differential([5, 1]))
         self.assertTrue(c1 + d1 == Differential([5, 1]))
         self.assertTrue(c2 + d2 == Differential([14, 1]))
 
+    def test_differential_sub(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([13, 1])
+        d3 = Differential([-5, 1])
+        c1 = Differential([3, 0])
+        c2 = Differential([1, 0])
+        c3 = Differential([-5, 0])
 
+        self.assertTrue(d1 - c1 == Differential([-1, 1]))
+        self.assertTrue(c1 - d1 == Differential([1, -1]))
+        self.assertTrue(d2 - c2 == Differential([12, 1]))
+        self.assertTrue(d3 - c3 == Differential([0, 1]))
+
+    def test_differential_mul(self):
+        d1 = Differential([2, 1])
+        d2 = Differential([10, 1])
+        d3 = Differential([-5, 1])
+        c1 = Differential([3, 0])
+        c2 = Differential([12, 0])
+        c3 = Differential([8, 0])
+
+        self.assertTrue(d1 * c1 == Differential([6, 3]))
+        self.assertTrue(c1 * d1 == Differential([6, 3]))
+        self.assertTrue(c2 * d2 == Differential([120, 12]))
+        self.assertTrue(c3 * d3 == Differential([-40, 8]))
 
 
 def main():
