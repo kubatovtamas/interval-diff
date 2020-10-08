@@ -53,11 +53,20 @@ class Interval:
         return f"[{self.low}, {self.high}]"
 
     def __eq__(self, other: Interval):
+        """
+            :return: true if the two Intervals low and high is close (rel_tol=0.0001)
+        """
         if isinstance(other, Interval):
             return math.isclose(self.low, other.low, rel_tol=0.0001) \
                    and math.isclose(self.high, other.high, rel_tol=0.0001)
 
     def __add__(self: Interval, other: Interval) -> Interval:
+        """
+            [a, b] + [c, d] = [a + c, b + d]
+
+            :param other: Interval instance
+            :return: new Interval
+        """
         if isinstance(other, Interval):
             left = self.low + other.low
             right = self.high + other.high
@@ -68,6 +77,12 @@ class Interval:
         raise TypeError
 
     def __sub__(self: Interval, other: Interval) -> Interval:
+        """
+            [a, b] - [c, d] = [a - d, b - c]
+
+            :param other: Interval instance
+            :return: new Interval
+        """
         if isinstance(other, Interval):
             left = self.low - other.high
             right = self.high - other.low
@@ -78,6 +93,12 @@ class Interval:
         raise TypeError
 
     def __mul__(self: Interval, other: Interval) -> Interval:
+        """
+            [a, b] * [c, d] = [min(ac, ad, bc, bd), max(ac, ad, bc, bd)]
+
+            :param other: Interval instance
+            :return: new Interval
+        """
         if isinstance(other, Interval):
             left = min(self.low * other.low, self.low * other.high, self.high * other.low, self.high * other.high)
             right = max(self.low * other.low, self.low * other.high, self.high * other.low, self.high * other.high)
@@ -93,6 +114,12 @@ class Interval:
         raise TypeError
 
     def __truediv__(self: Interval, other: Interval) -> Interval:
+        """
+            [a, b] / [c, d] = [a, b] * [1/d, 1/c], if 0 not in [c, d]
+
+            :param other: Interval instance
+            :return: new Interval
+        """
         if isinstance(other, Interval):
             if other.low <= 0 <= other.high:
                 raise ZeroDivisionError
@@ -104,6 +131,16 @@ class Interval:
         raise TypeError
 
     def __pow__(self: Interval, power: int, modulo=None) -> Interval:
+        """
+            [a, b] ^ power = {
+                [0, b^power] : if power is even, and 0 is in interval [a, b]
+
+                [a^power, b^power] : otherwise
+            }
+
+            :param power: int number the Interval is raised to
+            :return: new Interval
+        """
         if self.low <= 0 <= self.high:
             print(f"{self}^{power} = {Color.RED}[0,{(self.high ** power)}]{Color.END}")
             return Interval([0, (self.high ** power)])
@@ -113,18 +150,42 @@ class Interval:
         return Interval([min(val1, val2), max(val1, val2)])
 
     def __rxor__(self: Interval, other: number) -> Interval:
+        """
+            x^[a, b] = [x^a, x^b]
+
+            :param other: number to be raised to interval Power
+            :return: new Interval
+        """
         left = other ** self.low
         right = other ** self.high
         print(f"{other}^{self} = {Color.RED}[{other}^{self.low}, {other}^{self.high}]{Color.END}")
         return Interval([left, right])
 
     def log(self, log: number = math.e) -> Interval:
+        """
+            log([a, b]) = [log(a), log(b)]
+
+            :param log: base of log
+            :return: new Interval
+        """
         if self.low > 0 and self.high > 0 and log > 1:
             print(f"log({self}) = {Color.RED}[log({self.low}), log({self.high})]{Color.END}")
             return Interval([math.log(self.low, log), math.log(self.high, log)])
         raise ValueError
 
     def sin(self: Interval) -> Interval:
+        """
+            sin[a, b] = {
+                [-1, ...], if 3pi/2 + 2k * pi in [a, b],
+
+                [..., 1] if pi/2 + 2k * pi in [a, b],
+
+                [min(sin(a), sin(b)), max(sin(a), sin(b))] otherwise
+            }
+
+            :return: new Interval
+        """
+
         left = min(math.sin(self.low), math.sin(self.high))
         right = max(math.sin(self.low), math.sin(self.high))
 
@@ -164,6 +225,17 @@ class Interval:
         return Interval([left, right])
 
     def cos(self: Interval) -> Interval:
+        """
+            cos[a, b] = {
+                [-1, ...], if -pi + 2k * pi in [a, b],
+
+                [..., 1] if 0 + 2k * pi in [a, b],
+
+                [min(cos(a), cos(b)), max(cos(a), cos(b))] otherwise
+            }
+
+            :return: new Interval
+        """
         left = min(math.cos(self.low), math.cos(self.high))
         right = max(math.cos(self.low), math.cos(self.high))
 
@@ -702,6 +774,7 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(t2 ** 2 == Interval([1, 4]))
         self.assertTrue(t2 ** 0 == Interval([1, 1]))
         self.assertTrue(t2 ** 1 == t2)
+        self.assertTrue(t2 ** 3 == Interval([1, 8]))
 
         self.assertTrue(t2 ** -1 == Interval([0.5, 1]))
         self.assertTrue(t2 ** -2 == Interval([0.25, 1]))
