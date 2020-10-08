@@ -1,11 +1,10 @@
-# TODO implement int.calc operators
 # TODO make differential class
 # TODO implement diff.cald operators
 # TODO make IO script
 
 
 from __future__ import annotations
-from typing import Optional, TypeVar
+from typing import TypeVar
 import sympy as sp
 import unittest
 import math
@@ -28,13 +27,12 @@ class Color:
 
 
 # Interval arithmetic
-
 class Interval:
     def __init__(self, interval: list):
         self.interval = interval
 
     @property
-    def low(self):
+    def low(self) -> number:
         return self.interval[0]
 
     @low.setter
@@ -42,23 +40,25 @@ class Interval:
         self.interval[0] = value
 
     @property
-    def high(self):
+    def high(self) -> number:
         return self.interval[1]
 
     @high.setter
     def high(self, value):
         self.interval[1] = value
 
-    def __str__(self):
+    def __str__(self: Interval) -> str:
         return f"[{self.low}, {self.high}]"
 
-    def __eq__(self, other: Interval):
+    def __eq__(self: Interval, other: Interval) -> bool:
         """
             :return: true if the two Intervals low and high is close (rel_tol=0.0001)
+            :param other: Interval instance
         """
         if isinstance(other, Interval):
             return math.isclose(self.low, other.low, rel_tol=0.0001) \
                    and math.isclose(self.high, other.high, rel_tol=0.0001)
+        raise TypeError
 
     def __add__(self: Interval, other: Interval) -> Interval:
         """
@@ -161,7 +161,7 @@ class Interval:
         print(f"{other}^{self} = {Color.RED}[{other}^{self.low}, {other}^{self.high}]{Color.END}")
         return Interval([left, right])
 
-    def log(self, log: number = math.e) -> Interval:
+    def log(self: Interval, log: number = math.e) -> Interval:
         """
             log([a, b]) = [log(a), log(b)]
 
@@ -274,234 +274,60 @@ class Interval:
         return Interval([left, right])
 
 
-def add_interval(F: list, G: list, do_print: bool = True) -> list:
-    """
-        [a, b] + [c, d] = [a + c, b + d]
-
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: interval sum of F and G as list of len 2
-    """
-    left = F[0] + G[0]
-    right = F[1] + G[1]
-    if do_print:
-        print(f"{F} + {G} = [{F[0]} + {G[0]}, {F[1]} + {G[1]}] =  {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}\n")
-    return [left, right]
-
-
-def sub_interval(F: list, G: list, do_print: bool = True) -> list:
-    """
-        [a, b] - [c, d] = [a - d, b - c]
-
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: interval difference of F and G as list of len 2
-    """
-    left = F[0] - G[1]
-    right = F[1] - G[0]
-    if do_print:
-        print(f"{F} - {G} = [{F[0]} - {G[1]}, {F[1]} - {G[0]}] = {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}\n")
-    return [left, right]
-
-
-def mul_interval(F: list, G: list, do_print: bool = True) -> list:
-    """
-        [a, b] * [c, d] = [min(ac, ad, bc, bd), max(ac, ad, bc, bd)]
-
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: interval product of F and G as list of len 2
-    """
-    left = min(F[0] * G[0], F[0] * G[1], F[1] * G[0], F[1] * G[1])
-    right = max(F[0] * G[0], F[0] * G[1], F[1] * G[0], F[1] * G[1])
-    if do_print:
-        print(
-            f"[{F[0]:.3f}, {F[1]:.3f}] * [{G[0]:.3f}, {G[1]:.3f}] ="
-            f"[min({F[0]:.3f} * {G[0]:.3f}, {F[0]:.3f} * {G[1]:.3f}, {F[1]:.3f} * {G[0]:.3f}, {F[1]:.3f} * {G[1]:.3f}),"
-            f" max({F[0]:.3f} * {G[0]:.3f}, {F[0]:.3f} * {G[1]:.3f}, {F[1]:.3f} * {G[0]:.3f}, {F[1]:.3f} * {G[1]:.3f})"
-            f" = {Color.RED} [{left:.3f}, {right:.3f}] {Color.END}\n")
-    return [left, right]
-
-
-def div_interval(F: list, G: list, do_print: bool = True) -> Optional[list]:
-    """
-        [a, b] / [c, d] = [a, b] * [1/d, 1/c], if 0 not in [c, d]
-
-        :param F: interval_1 as list of len 2
-        :param G: interval_2 as list of len 2
-        :param do_print: print to stdout if true
-        :return: interval quotient of F and G as list of len 2
-    """
-    if G[0] <= 0 <= G[1]:
-        if do_print:
-            print(f"{Color.RED}A nevező intervallum eleme a nulla, így a művelet nem elvégezhető{Color.END}\n")
-        return None
-    if do_print:
-        print(f"{F} / {G} = {F} * [1 / {G[1]:.3f}, 1 / {G[0]:.3f}] = ")
-    return mul_interval(F, [1 / G[1], 1 / G[0]], do_print)
-
-
-def pow_interval(F: list, k: int, do_print: bool = True) -> list:
-    """
-        [a, b] ^ k = {
-            [0, b^k] : if k is even, and 0 is in interval [a, b]
-
-            [a^k, b^k] : otherwise
-        }
-
-        :param F: the base interval as list of len 2
-        :param k: the power to which F is raised
-        :param do_print: print to stdout if true
-        :return: interval F raised to power k as list of len 2
-    """
-    if k % 2 == 0:
-        # paros kitevo, 0 eleme az intervallumnak
-        if F[0] <= 0 <= F[1]:
-            if do_print:
-                print(f"{F}^{k} = {Color.RED}[0,{(F[1] ** k):.3f}]{Color.END}")
-            return [0, (F[1] ** k)]
-    if do_print:
-        print(f"{F}^{k} = {Color.RED}[{F[0] ** k:.3f}, {F[1] ** k:.3f}]{Color.END}")
-    return [(F[0] ** k), (F[1] ** k)]
-
-
-# def log_interval(F: list, do_print: bool = True) -> list:
-    # TODO THIS IS exp_interval, DONT COPY PASTE NEXT TIME
-    # """
-    # log([a, b]) = [log(a), log(b)]
-    #
-    # :param F: the input interval as list of len 2
-    # :param do_print: print to stdout if true
-    # :return: logarithm of interval F as list of len 2
-    # """
-    # left = math.e ** F[0]
-    # right = math.e ** F[1]
-    # if do_print:
-    #     print(f"num^{F} = {Color.RED}[{math.e}^{F[0]}, {math.e}{F[1]}]{Color.END}")
-    # return [left, right]
-
-
-def exp_interval(F: list, num: number = math.e, do_print: bool = True) -> list:
-    """
-    x^[a, b] = [x^a, x^b]
-
-    :param F: the power interval as list of len 2
-    :param num: the number to be raised to interval F
-    :param do_print: print to stdout if true
-    :return: interval F raised to power k as list of len 2
-    """
-    left = num ** F[0]
-    right = num ** F[1]
-    if do_print:
-        print(f"num^{F} = {Color.RED}[{num}^{F[0]}, {num}{F[1]}]{Color.END}")
-    return [left, right]
-
-
-def sin_interval(F: list, do_print: bool = True) -> list:
-    """
-    sin[a, b] = {
-        [-1, ...], if 3pi/2 + 2k * pi in [a, b],
-
-        [..., 1] if pi/2 + 2k * pi in [a, b],
-
-        [min(sin(a), sin(b)), max(sin(a), sin(b))] otherwise
-    }
-
-    :param F: interval as list of len 2
-    :param do_print: print to stdout if true
-    :return: value of sin in interval F as list of len 2
-    """
-    left = min(math.sin(F[0]), math.sin(F[1]))
-    right = max(math.sin(F[0]), math.sin(F[1]))
-
-    a = F[0]
-    b = F[1]
-
-    # shift a between [0, 2pi]
-    while (2 * math.pi) <= a:
-        a = a - (2 * math.pi)
-        b = b - (2 * math.pi)
-
-    while a < 0:
-        a = a + (2 * math.pi)
-        b = b + (2 * math.pi)
-
-    # shorten [a, b] to 2*pi length
-    if (b - a) >= 2 * math.pi:
-        b = a + (2 * math.pi)
-
-    # critical points: 3pi / 2, 7pi / 2, 11pi / 2 -> -1
-    if (a <= ((3 * math.pi) / 2) <= b) or (a <= (7 * math.pi) / 2 <= b) or (a <= (11 * math.pi) / 2 <= b):
-        left = -1
-
-    # critical points: pi / 2, 5pi / 2, 9pi / 2 -> 1
-    if (a <= (math.pi / 2) <= b) or (a <= (5 * math.pi / 2) <= b) or (a <= (9 * math.pi / 2) <= b):
-        right = 1
-
-    if do_print:
-        print(f"sin({F}) = [min(sin(a), sin(b)) és -1 ha 3pi/2 + 2k * pi eleme [a, b]-nek,"
-              f" max(sin(a), sin(b)) és 1 ha pi/2 + 2k * pi eleme [a, b]-nek"
-              f" => {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
-
-def cos_interval(F: list, do_print: bool = True) -> list:
-    """
-        cos[a, b] = {
-            [-1, ...], if -pi + 2k * pi in [a, b],
-
-            [..., 1] if 0 + 2k * pi in [a, b],
-
-            [min(cos(a), cos(b)), max(cos(a), cos(b))] otherwise
-        }
-
-        :param F: interval as list of len 2
-        :param do_print: print to stdout if true
-        :return: value of cos in interval F as list of len 2
-    """
-
-    left = min(math.cos(F[0]), math.cos(F[1]))
-    right = max(math.cos(F[0]), math.cos(F[1]))
-
-    a = F[0]
-    b = F[1]
-
-    # shift a between [-pi, pi]
-    while math.pi <= a:
-        a = a - (2 * math.pi)
-        b = b - (2 * math.pi)
-
-    while a < (-1 * math.pi):
-        a = a + (2 * math.pi)
-        b = b + (2 * math.pi)
-
-    # shorten [a, b] to 2*pi length
-    if (b - a) >= 2 * math.pi:
-        b = a + (2 * math.pi)
-
-    # critical points: -pi, pi, 3pi
-    if (a <= (-1 * math.pi) <= b) or (a <= math.pi <= b) or (a <= 3 * math.pi <= b):
-        left = -1
-
-    # critical points: 0, 2pi, 4pi
-    if (a <= 0 <= b) or (a <= (2 * math.pi) <= b) or (a <= (4 * math.pi) <= b):
-        right = 1
-
-    if do_print:
-        print(f"cos({F}) = [min(cos(a), cos(b)) és -1 ha pi + 2k * pi eleme [a, b]-nek,"
-              f" max(cos(a), cos(b)) és 1 ha 0 + 2k * pi eleme [a, b]-nek"
-              f" => {Color.RED}[{left:.3f}, {right:.3f}]{Color.END}")
-    return [left, right]
-
 # Differential arithmetic
 # Power rule: (x^n)' = n * x^(n-1)
 # Product rule: (f * g)' = (f * g') + (f' * g)
 # Quotient rule: (f / g)' = ((f' * g) - (f * g')) / g^2
 # Chain rule: (f(g(x)))' = f'(g(x)) * g'(x)
 # Addition rule: (f + g)' = f' + g'
+
+
+class Differential:
+    def __init__(self, interval: list):
+        self.interval = interval
+
+    @property
+    def val(self) -> number:
+        return self.interval[0]
+
+    @val.setter
+    def val(self, value):
+        self.interval[0] = value
+
+    @property
+    def diff(self) -> number:
+        return self.interval[1]
+
+    @diff.setter
+    def diff(self, value):
+        self.interval[1] = value
+
+    def __str__(self: Differential) -> str:
+        return f"[{self.val}, {self.diff}]"
+
+    def __eq__(self: Differential, other: Differential) -> bool:
+        """
+            :return: true if the two Differentials val and diff is close (rel_tol=0.0001)
+            :param other: Differential instance
+        """
+        if isinstance(other, Differential):
+            return math.isclose(self.val, other.val, rel_tol=0.0001) \
+                   and math.isclose(self.diff, other.diff, rel_tol=0.0001)
+        raise TypeError
+
+    def __add__(self: Differential, other: Differential) -> Differential:
+        """
+        (F + G)' = F' + G'
+
+        :param other: Differential instance
+        :return: new Differential
+        """
+        if isinstance(other, Differential):
+            left = self.val + other.val
+            right = self.diff + other.diff
+            print(f"{self} + {other} = {Color.RED}{[left, right]}{Color.END}")
+            return Differential([left, right])
+        raise TypeError
 
 
 def add_diff(F: list, G: list, do_print: bool = True) -> list:
@@ -846,70 +672,43 @@ class IntervalClassTestCase(unittest.TestCase):
         self.assertTrue(Interval.cos(t6) == Interval([-1, 0]))
 
 
-class IntervalArithmeticTestCase(unittest.TestCase):
-    def test_add_interval(self):
-        self.assertEqual(add_interval([0, 1], [2, 3], False), [2, 4])
-        self.assertEqual(add_interval([1, 2], [-3, 4], False), [-2, 6])
+class DifferentialTestCase(unittest.TestCase):
+    def test_differential_init(self):
+        d1 = Differential([1, 5])
+        self.assertIsInstance(d1, Differential)
+        self.assertEqual(d1.val, d1.interval[0])
+        self.assertEqual(d1.diff, d1.interval[1])
+        self.assertEqual(d1.val, 1)
+        self.assertEqual(d1.diff, 5)
 
-    def test_sub_interval(self):
-        self.assertEqual(sub_interval([0, 1], [2, 3], False), [-3, -1])
-        self.assertEqual(sub_interval([2, 3], [0, 1], False), [1, 3])
-        self.assertEqual(sub_interval([1, 2], [-3, 4], False), [-3, 5])
+    def test_differential_add(self):
+        d1 = Differential([2,1])
+        d2 = Differential([13,1])
+        c1 = Differential([3,0])
+        c2 = Differential([1,0])
+        self.assertTrue(d1 + c1 == Differential([5, 1]))
+        self.assertTrue(c1 + d1 == Differential([5, 1]))
+        self.assertTrue(c2 + d2 == Differential([14, 1]))
 
-    def test_mul_interval(self):
-        self.assertEqual(mul_interval([0, 1], [2, 3], False), [0, 3])
-        self.assertEqual(mul_interval([1, 2], [-3, 4], False), [-6, 8])
 
-    def test_div_interval(self):
-        self.assertEqual(div_interval([1, 2], [-3, 4], False), None)
-        self.assertEqual(div_interval([1, 2], [1, 2], False), [0.5, 2])
-
-    def test_pow_interval(self):
-        self.assertEqual(pow_interval([-1, 2], 2, False), [0, 4])
-
-    def test_exp_interval(self):
-        self.assertEqual(exp_interval([1, 2], math.e, False), [math.e, math.e ** 2])
-        self.assertEqual(exp_interval([-2, 2], 2, False), [2 ** -2, 2 ** 2])
-        self.assertEqual(exp_interval([-6, 8], math.pi, False), [math.pi ** -6, math.pi ** 8])
-
-    def test_sin_interval(self):
-        self.assertEqual(sin_interval([0, math.pi], False), [0, 1])
-        self.assertEqual(sin_interval([-4 * math.pi, 5 * math.pi / 2], False), [-1, 1])
-        self.assertEqual(sin_interval([math.pi, 4*math.pi], False), [-1, 1])
-        self.assertAlmostEqual(sin_interval([0, 4], False)[0], -0.757, 3)
-        self.assertEqual(sin_interval([0, 4], False)[1], 1)
-        self.assertEqual(sin_interval([0, 2*math.pi], False)[1], 1)
-        self.assertEqual(sin_interval([-1 * math.pi / 2, 0], False), [-1, 0])
-        self.assertEqual(sin_interval([-1 * math.pi / 2, 1], False), [-1, math.sin(1)])
-
-    def test_cos_interval(self):
-        self.assertEqual(cos_interval([0, 4], False), [-1, 1])
-        self.assertEqual(cos_interval([math.pi, 4 * math.pi], False), [-1, 1])
-        self.assertEqual(cos_interval([0, 13], False), [-1, 1])
-        self.assertEqual(cos_interval([0, 7], False), [-1, 1])
-        self.assertAlmostEqual(cos_interval([-1 * math.pi / 2, 0], False)[0], 0, 3)
-        self.assertAlmostEqual(cos_interval([-1 * math.pi, -1 * math.pi / 2], False)[1], 0, 3)
-
-    def test_expression(self):
-        self.assertEqual(
-            sub_interval(
-                add_interval(
-                    div_interval([2, 4], [1, 2], False),
-                    mul_interval([4, 5], [2, 3], False), False
-                ), [-5, 6], False
-            ), [3, 24])
 
 
 def main():
-    print("Team1 [1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = "
-          "[1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]")
+    # print("Team1 [1;4]+[-1;2]/[-5;-1]-[-2;1] = [1;4]+[-1;2]*[-1;-1/5]-[-2;1] = "
+    #       "[1;4]+[-2;1] -[-2;1] = [-1;5] -[-2;1] = [-2;7]")
+    #
+    # i1 = Interval([1, 4])
+    # i2 = Interval([-1, 2])
+    # i3 = Interval([-5, -1])
+    # i4 = Interval([-2, 1])
+    #
+    # i1 + i2 / i3 - i4
 
-    i1 = Interval([1, 4])
-    i2 = Interval([-1, 2])
-    i3 = Interval([-5, -1])
-    i4 = Interval([-2, 1])
 
-    print(i1 + i2 / i3 - i4)
+    d1 = Differential([2, 1])
+    c1 = Differential([3, 0])
+    d1 + c1
+
     # Gyak 3:
     # I. Intervallum aritmetika
 
