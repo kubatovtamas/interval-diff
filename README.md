@@ -31,4 +31,17 @@ x.log() * (x**2 + 2*x + c)
 ![diff1](https://user-images.githubusercontent.com/45062503/103547081-383c2180-4ea4-11eb-91c4-4a6aeef12f4c.png)
 
 Supports differentiation with respect to multiple variables, with the following syntax:
+```Python
+x = Differential([1, 1])
+xd = Differential([1, 0])
+y = Differential([2, 1])
+yd = Differential([2, 0])
+c = Differential([2, 0])
+
+print("\t>>> derivative of the function with respect to x")
+(x ** 2).sin() * (yd ** 3 + c)
+
+print("\t>>> derivative of the function with respect to y")
+(xd ** 2).sin() * (y ** 3 + c)
+```
 ![diff2](https://user-images.githubusercontent.com/45062503/103547086-38d4b800-4ea4-11eb-8584-767a92571811.png)
